@@ -35,6 +35,15 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // CRITICAL: Don't intercept auth callback URLs (magic link return)
+    // These contain ?code=... or #access_token=... that must reach the app
+    if (url.searchParams.has('code') ||
+        url.searchParams.has('token') ||
+        url.searchParams.has('error') ||
+        url.hash.includes('access_token')) {
+        return;
+    }
+
     // Don't cache CDN scripts (supabase-js) — let browser handle
     if (url.hostname.includes('cdn.jsdelivr.net')) {
         event.respondWith(
