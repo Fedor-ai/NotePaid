@@ -33,7 +33,7 @@
         .auth-msg.error{color:var(--danger)} .auth-msg.ok{color:var(--success)}
         .auth-footer{margin-top:32px;font-size:12px;color:var(--text-muted);line-height:1.6}
         .otp-inputs{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
-        .otp-digit{width:46px;height:56px;text-align:center;font-size:24px;font-weight:700;font-family:'Onest',sans-serif;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);outline:none;transition:border-color 0.3s,box-shadow 0.3s}
+        .otp-digit{width:38px;height:50px;text-align:center;font-size:24px;font-weight:700;font-family:'Onest',sans-serif;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);outline:none;transition:border-color 0.3s,box-shadow 0.3s}
         .otp-digit:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
         .auth-back{background:none;border:none;color:var(--text-muted);font-family:'Onest',sans-serif;font-size:13px;cursor:pointer;padding:8px;margin-top:8px}
         .auth-back:hover{color:var(--text-secondary)}
@@ -120,6 +120,8 @@
                 <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="3">
                 <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="4">
                 <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="5">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="6">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="7">
             </div>
             <button class="auth-btn" id="btnVerifyCode">Подтвердить</button>
             <div class="auth-msg" id="authMsgOtp"></div>
@@ -225,7 +227,7 @@ const digits=otpInputs.querySelectorAll('.otp-digit');
 digits.forEach((inp,i)=>{
     inp.addEventListener('input',e=>{
         inp.value=inp.value.replace(/[^0-9]/g,'');
-        if(inp.value&&i<5)digits[i+1].focus();
+        if(inp.value&&i<7)digits[i+1].focus();
         if(i===5&&inp.value)btnVerifyCode.click();
     });
     inp.addEventListener('keydown',e=>{
@@ -233,15 +235,15 @@ digits.forEach((inp,i)=>{
     });
     inp.addEventListener('paste',e=>{
         e.preventDefault();
-        const text=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
-        for(let j=0;j<text.length&&j<6;j++){digits[j].value=text[j]}
-        if(text.length>=6)btnVerifyCode.click();else if(text.length>0)digits[Math.min(text.length,5)].focus();
+        const text=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,8);
+        for(let j=0;j<text.length&&j<8;j++){digits[j].value=text[j]}
+        if(text.length>=8)btnVerifyCode.click();else if(text.length>0)digits[Math.min(text.length,7)].focus();
     });
 });
 
 btnVerifyCode.addEventListener('click',async()=>{
     const code=Array.from(digits).map(d=>d.value).join('');
-    if(code.length!==6){authMsgOtp.textContent='Введите все 6 цифр';authMsgOtp.className='auth-msg error';return}
+    if(code.length!==8){authMsgOtp.textContent='Введите все 8 цифр';authMsgOtp.className='auth-msg error';return}
     btnVerifyCode.disabled=true;btnVerifyCode.textContent='Проверяем…';authMsgOtp.textContent='';
     try{
         const{data,error}=await supabase.auth.verifyOtp({email:pendingEmail,token:code,type:'email'});
