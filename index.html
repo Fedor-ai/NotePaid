@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="NotePaid">
+    <meta name="apple-mobile-web-app-title" content="Планёр">
     <meta name="theme-color" content="#0b0b12">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -14,349 +14,298 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #0b0b12; --bg-secondary: #121219; --bg-card: #1a1a25;
-            --bg-card-hover: #22222e; --bg-input: #14141d;
-            --accent: #6c5ce7; --accent-glow: rgba(108,92,231,0.3); --accent-light: #a29bfe;
-            --success: #00cec9; --success-glow: rgba(0,206,201,0.25);
-            --warning: #fdcb6e; --danger: #ff6b6b;
-            --text-primary: #e8e6f0; --text-secondary: #8a879a; --text-muted: #5a576a;
-            --border: rgba(255,255,255,0.06); --border-accent: rgba(108,92,231,0.3);
-            --radius: 16px; --radius-sm: 10px;
-            --shadow: 0 8px 32px rgba(0,0,0,0.4);
-            --safe-top: env(safe-area-inset-top, 20px); --safe-bottom: env(safe-area-inset-bottom, 20px);
-        }
-        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-        body { font-family:'Onest',-apple-system,sans-serif; background:var(--bg-primary); color:var(--text-primary); min-height:100dvh; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
-        body::before { content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(ellipse at 30% 20%,rgba(108,92,231,0.07) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(0,206,201,0.04) 0%,transparent 50%); pointer-events:none; z-index:0; }
-        .app { position:relative; z-index:1; max-width:480px; margin:0 auto; padding:var(--safe-top) 16px var(--safe-bottom); min-height:100dvh; }
-        .auth-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:80dvh; padding:24px; text-align:center; }
-        .auth-logo { font-family:'Playfair Display',serif; font-size:42px; font-weight:800; background:linear-gradient(135deg,var(--text-primary) 0%,var(--accent-light) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:8px; }
-        .auth-subtitle { font-size:14px; color:var(--text-secondary); margin-bottom:40px; }
-        .auth-form { width:100%; max-width:340px; }
-        .auth-input { width:100%; padding:16px 20px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); color:var(--text-primary); font-family:'Onest',sans-serif; font-size:16px; outline:none; transition:border-color 0.3s,box-shadow 0.3s; margin-bottom:12px; }
-        .auth-input::placeholder { color:var(--text-muted); }
-        .auth-input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
-        .auth-btn { width:100%; padding:16px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-family:'Onest',sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:transform 0.2s,box-shadow 0.2s,opacity 0.2s; }
-        .auth-btn:active { transform:scale(0.97); }
-        .auth-btn:hover { box-shadow:0 4px 20px var(--accent-glow); }
-        .auth-btn:disabled { opacity:0.5; cursor:not-allowed; }
-        .auth-msg { margin-top:16px; font-size:13px; color:var(--text-secondary); line-height:1.5; min-height:20px; }
-        .auth-msg.error { color:var(--danger); }
-        .auth-msg.ok { color:var(--success); }
-        .auth-footer { margin-top:32px; font-size:12px; color:var(--text-muted); line-height:1.6; }
-        .sync-indicator { position:fixed; top:calc(var(--safe-top) + 8px); right:12px; display:flex; align-items:center; gap:6px; padding:6px 12px; background:var(--bg-card); border:1px solid var(--border); border-radius:20px; font-size:11px; color:var(--text-muted); z-index:50; opacity:0; transform:translateY(-10px); transition:opacity 0.3s,transform 0.3s; }
-        .sync-indicator.show { opacity:1; transform:translateY(0); }
-        .sync-dot { width:6px; height:6px; border-radius:50%; background:var(--success); }
-        .sync-dot.syncing { background:var(--warning); animation:pulse 1s infinite; }
-        .sync-dot.error { background:var(--danger); }
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-        .user-bar { display:flex; align-items:center; justify-content:space-between; padding:6px 0 0; margin-bottom:-8px; }
-        .user-email { font-size:11px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px; }
-        .btn-logout { font-size:11px; color:var(--text-muted); background:none; border:1px solid var(--border); padding:4px 10px; border-radius:8px; cursor:pointer; font-family:'Onest',sans-serif; transition:color 0.2s,border-color 0.2s; }
-        .btn-logout:hover { color:var(--danger); border-color:rgba(255,107,107,0.3); }
-        .header { padding:16px 0 24px; text-align:center; }
-        .header-date { font-family:'Playfair Display',serif; font-size:14px; font-weight:700; color:var(--accent-light); text-transform:uppercase; letter-spacing:3px; margin-bottom:6px; }
-        .header-title { font-family:'Playfair Display',serif; font-size:32px; font-weight:800; background:linear-gradient(135deg,var(--text-primary) 0%,var(--accent-light) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-        .header-stats { display:flex; justify-content:center; gap:24px; margin-top:16px; }
-        .stat { display:flex; flex-direction:column; align-items:center; gap:2px; }
-        .stat-value { font-size:22px; font-weight:700; color:var(--text-primary); }
-        .stat-value.done { color:var(--success); } .stat-value.pending { color:var(--warning); }
-        .stat-label { font-size:11px; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; }
-        .tabs { display:flex; gap:4px; background:var(--bg-secondary); border-radius:var(--radius); padding:4px; margin-bottom:20px; border:1px solid var(--border); }
-        .tab { flex:1; padding:10px 8px; border:none; background:transparent; color:var(--text-secondary); font-family:'Onest',sans-serif; font-size:13px; font-weight:500; border-radius:12px; cursor:pointer; transition:all 0.3s ease; }
-        .tab.active { background:var(--accent); color:#fff; box-shadow:0 4px 16px var(--accent-glow); }
-        .tab .tab-badge { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:18px; padding:0 5px; border-radius:9px; font-size:10px; font-weight:700; margin-left:4px; background:rgba(255,255,255,0.15); color:inherit; }
-        .tab:not(.active) .tab-badge { background:rgba(255,255,255,0.06); }
-        .input-area { display:flex; gap:8px; margin-bottom:24px; }
-        .input-area input { flex:1; padding:14px 18px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); color:var(--text-primary); font-family:'Onest',sans-serif; font-size:15px; outline:none; transition:border-color 0.3s,box-shadow 0.3s; }
-        .input-area input::placeholder { color:var(--text-muted); }
-        .input-area input:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
-        .btn-add { width:50px; height:50px; border:none; background:var(--accent); color:#fff; border-radius:var(--radius); font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s,box-shadow 0.2s; flex-shrink:0; }
-        .btn-add:active { transform:scale(0.92); } .btn-add:hover { box-shadow:0 4px 20px var(--accent-glow); }
-        .task-list { display:flex; flex-direction:column; gap:8px; }
-        .section-label { font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:2px; padding:16px 4px 8px; }
-        .section-label:first-child { padding-top:0; }
-        .task-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; display:flex; align-items:flex-start; gap:12px; transition:all 0.3s ease; animation:slideIn 0.35s cubic-bezier(0.16,1,0.3,1); position:relative; overflow:hidden; }
-        @keyframes slideIn { from{opacity:0;transform:translateY(12px) scale(0.97);} to{opacity:1;transform:translateY(0) scale(1);} }
-        .task-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); border-radius:0 2px 2px 0; opacity:0; transition:opacity 0.3s; }
-        .task-card:not(.completed)::before { opacity:1; }
-        .task-card.completed { opacity:0.55; } .task-card.completed::before { background:var(--success); opacity:1; }
-        .task-card.overdue::before { background:var(--warning); opacity:1; }
-        .task-check { width:24px; height:24px; border-radius:50%; border:2px solid var(--text-muted); background:transparent; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.3s ease; margin-top:1px; color:transparent; font-size:13px; }
-        .task-check:hover { border-color:var(--success); }
-        .task-card.completed .task-check { border-color:var(--success); background:var(--success); color:#fff; }
-        .task-body { flex:1; min-width:0; }
-        .task-text { font-size:15px; font-weight:400; line-height:1.45; color:var(--text-primary); word-break:break-word; }
-        .task-card.completed .task-text { text-decoration:line-through; color:var(--text-secondary); }
-        .task-meta { display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap; }
-        .task-date-badge { font-size:11px; font-weight:500; color:var(--text-muted); background:rgba(255,255,255,0.04); padding:3px 8px; border-radius:6px; }
-        .task-date-badge.overdue { color:var(--warning); background:rgba(253,203,110,0.1); }
-        .task-actions { display:flex; gap:4px; align-items:center; flex-shrink:0; }
-        .task-btn { width:32px; height:32px; border:none; background:rgba(255,255,255,0.04); color:var(--text-muted); border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; transition:all 0.2s; }
-        .task-btn:hover { background:rgba(255,255,255,0.08); color:var(--text-primary); }
-        .task-btn.transfer { color:var(--accent-light); } .task-btn.transfer:hover { background:var(--accent-glow); color:var(--accent); }
-        .task-btn.delete:hover { background:rgba(255,107,107,0.15); color:var(--danger); }
-        .empty-state { text-align:center; padding:48px 16px; }
-        .empty-icon { font-size:48px; margin-bottom:12px; opacity:0.6; }
-        .empty-text { font-size:15px; color:var(--text-secondary); line-height:1.5; }
-        .empty-sub { font-size:13px; color:var(--text-muted); margin-top:4px; }
-        .overdue-banner { background:linear-gradient(135deg,rgba(253,203,110,0.1),rgba(255,107,107,0.08)); border:1px solid rgba(253,203,110,0.2); border-radius:var(--radius); padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
-        .overdue-banner-icon { font-size:20px; } .overdue-banner-text { font-size:13px; color:var(--warning); font-weight:500; flex:1; }
-        .btn-transfer-all { padding:8px 14px; background:var(--warning); color:var(--bg-primary); border:none; border-radius:var(--radius-sm); font-family:'Onest',sans-serif; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; transition:transform 0.2s; }
-        .btn-transfer-all:active { transform:scale(0.95); }
-        .history-day { margin-bottom:24px; }
-        .history-day-header { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; color:var(--text-secondary); padding-bottom:10px; border-bottom:1px solid var(--border); margin-bottom:10px; }
-        .toast { position:fixed; bottom:calc(20px + var(--safe-bottom)); left:50%; transform:translateX(-50%) translateY(100px); background:var(--bg-card); color:var(--text-primary); padding:12px 20px; border-radius:var(--radius); font-size:14px; font-weight:500; box-shadow:var(--shadow); border:1px solid var(--border); transition:transform 0.4s cubic-bezier(0.16,1,0.3,1); z-index:100; text-align:center; max-width:90%; }
-        .toast.show { transform:translateX(-50%) translateY(0); }
-        .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:200; align-items:center; justify-content:center; padding:24px; }
-        .overlay.show { display:flex; }
-        .dialog { background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius); padding:24px; max-width:320px; width:100%; text-align:center; }
-        .dialog-text { font-size:15px; color:var(--text-primary); margin-bottom:20px; line-height:1.5; }
-        .dialog-actions { display:flex; gap:8px; }
-        .dialog-btn { flex:1; padding:12px; border:none; border-radius:var(--radius-sm); font-family:'Onest',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:transform 0.2s; }
-        .dialog-btn:active { transform:scale(0.95); }
-        .dialog-btn.cancel { background:var(--bg-card); color:var(--text-secondary); }
-        .dialog-btn.confirm { background:var(--danger); color:#fff; }
-        .dialog-btn.confirm-accent { background:var(--accent); color:#fff; }
-        ::-webkit-scrollbar { width:0; }
-        .hidden { display:none !important; }
-        .loading-screen { display:flex; align-items:center; justify-content:center; min-height:80dvh; flex-direction:column; gap:16px; }
-        .spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
-        @keyframes spin { to{transform:rotate(360deg);} }
-        @media (prefers-color-scheme:light) {
-            :root { --bg-primary:#f5f4f8; --bg-secondary:#eae9f0; --bg-card:#ffffff; --bg-card-hover:#f0eff5; --bg-input:#eae9f0; --text-primary:#1a1a2e; --text-secondary:#6b6888; --text-muted:#9996ad; --border:rgba(0,0,0,0.06); --shadow:0 8px 32px rgba(0,0,0,0.08); }
-        }
+        :root{--bg-primary:#0b0b12;--bg-secondary:#121219;--bg-card:#1a1a25;--bg-card-hover:#22222e;--accent:#6c5ce7;--accent-glow:rgba(108,92,231,0.3);--accent-light:#a29bfe;--success:#00cec9;--warning:#fdcb6e;--danger:#ff6b6b;--text-primary:#e8e6f0;--text-secondary:#8a879a;--text-muted:#5a576a;--border:rgba(255,255,255,0.06);--radius:16px;--radius-sm:10px;--shadow:0 8px 32px rgba(0,0,0,0.4);--safe-top:env(safe-area-inset-top,20px);--safe-bottom:env(safe-area-inset-bottom,20px)}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Onest',-apple-system,sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+        body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 20%,rgba(108,92,231,0.07) 0%,transparent 50%),radial-gradient(ellipse at 70% 80%,rgba(0,206,201,0.04) 0%,transparent 50%);pointer-events:none;z-index:0}
+        .app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:var(--safe-top) 16px var(--safe-bottom);min-height:100dvh}
+        /* Auth */
+        .auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80dvh;padding:24px;text-align:center}
+        .auth-logo{font-family:'Playfair Display',serif;font-size:42px;font-weight:800;background:linear-gradient(135deg,var(--text-primary),var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+        .auth-subtitle{font-size:14px;color:var(--text-secondary);margin-bottom:40px}
+        .auth-form{width:100%;max-width:340px}
+        .auth-input{width:100%;padding:16px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-family:'Onest',sans-serif;font-size:16px;outline:none;transition:border-color 0.3s,box-shadow 0.3s;margin-bottom:12px}
+        .auth-input::placeholder{color:var(--text-muted)}
+        .auth-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+        .auth-btn{width:100%;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:'Onest',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s,opacity 0.2s}
+        .auth-btn:active{transform:scale(0.97)} .auth-btn:hover{box-shadow:0 4px 20px var(--accent-glow)} .auth-btn:disabled{opacity:0.5;cursor:not-allowed}
+        .auth-msg{margin-top:16px;font-size:13px;color:var(--text-secondary);line-height:1.5;min-height:20px}
+        .auth-msg.error{color:var(--danger)} .auth-msg.ok{color:var(--success)}
+        .auth-footer{margin-top:32px;font-size:12px;color:var(--text-muted);line-height:1.6}
+        .otp-inputs{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+        .otp-digit{width:46px;height:56px;text-align:center;font-size:24px;font-weight:700;font-family:'Onest',sans-serif;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);outline:none;transition:border-color 0.3s,box-shadow 0.3s}
+        .otp-digit:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+        .auth-back{background:none;border:none;color:var(--text-muted);font-family:'Onest',sans-serif;font-size:13px;cursor:pointer;padding:8px;margin-top:8px}
+        .auth-back:hover{color:var(--text-secondary)}
+        /* Sync */
+        .sync-indicator{position:fixed;top:calc(var(--safe-top) + 8px);right:12px;display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text-muted);z-index:50;opacity:0;transform:translateY(-10px);transition:opacity 0.3s,transform 0.3s}
+        .sync-indicator.show{opacity:1;transform:translateY(0)}
+        .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--success)} .sync-dot.syncing{background:var(--warning);animation:pulse 1s infinite} .sync-dot.error{background:var(--danger)}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+        /* Main UI */
+        .user-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 0 0;margin-bottom:-8px}
+        .user-email{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+        .btn-logout{font-size:11px;color:var(--text-muted);background:none;border:1px solid var(--border);padding:4px 10px;border-radius:8px;cursor:pointer;font-family:'Onest',sans-serif;transition:color 0.2s,border-color 0.2s}
+        .btn-logout:hover{color:var(--danger);border-color:rgba(255,107,107,0.3)}
+        .header{padding:16px 0 24px;text-align:center}
+        .header-date{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--accent-light);text-transform:uppercase;letter-spacing:3px;margin-bottom:6px}
+        .header-title{font-family:'Playfair Display',serif;font-size:32px;font-weight:800;background:linear-gradient(135deg,var(--text-primary),var(--accent-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .header-stats{display:flex;justify-content:center;gap:24px;margin-top:16px}
+        .stat{display:flex;flex-direction:column;align-items:center;gap:2px} .stat-value{font-size:22px;font-weight:700} .stat-value.done{color:var(--success)} .stat-value.pending{color:var(--warning)}
+        .stat-label{font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+        .tabs{display:flex;gap:4px;background:var(--bg-secondary);border-radius:var(--radius);padding:4px;margin-bottom:20px;border:1px solid var(--border)}
+        .tab{flex:1;padding:10px 8px;border:none;background:transparent;color:var(--text-secondary);font-family:'Onest',sans-serif;font-size:13px;font-weight:500;border-radius:12px;cursor:pointer;transition:all 0.3s}
+        .tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 16px var(--accent-glow)}
+        .tab .tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;font-size:10px;font-weight:700;margin-left:4px;background:rgba(255,255,255,0.15)}
+        .tab:not(.active) .tab-badge{background:rgba(255,255,255,0.06)}
+        .input-area{display:flex;gap:8px;margin-bottom:24px}
+        .input-area input{flex:1;padding:14px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-family:'Onest',sans-serif;font-size:15px;outline:none;transition:border-color 0.3s,box-shadow 0.3s}
+        .input-area input::placeholder{color:var(--text-muted)} .input-area input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+        .btn-add{width:50px;height:50px;border:none;background:var(--accent);color:#fff;border-radius:var(--radius);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.2s,box-shadow 0.2s;flex-shrink:0}
+        .btn-add:active{transform:scale(0.92)} .btn-add:hover{box-shadow:0 4px 20px var(--accent-glow)}
+        .task-list{display:flex;flex-direction:column;gap:8px}
+        .section-label{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;padding:16px 4px 8px} .section-label:first-child{padding-top:0}
+        .task-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:flex-start;gap:12px;transition:all 0.3s;animation:slideIn 0.35s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
+        @keyframes slideIn{from{opacity:0;transform:translateY(12px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+        .task-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:0 2px 2px 0;opacity:0;transition:opacity 0.3s}
+        .task-card:not(.completed)::before{opacity:1} .task-card.completed{opacity:0.55} .task-card.completed::before{background:var(--success);opacity:1} .task-card.overdue::before{background:var(--warning);opacity:1}
+        .task-check{width:24px;height:24px;border-radius:50%;border:2px solid var(--text-muted);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.3s;margin-top:1px;color:transparent;font-size:13px}
+        .task-check:hover{border-color:var(--success)} .task-card.completed .task-check{border-color:var(--success);background:var(--success);color:#fff}
+        .task-body{flex:1;min-width:0} .task-text{font-size:15px;line-height:1.45;word-break:break-word} .task-card.completed .task-text{text-decoration:line-through;color:var(--text-secondary)}
+        .task-meta{display:flex;align-items:center;gap:8px;margin-top:6px} .task-date-badge{font-size:11px;font-weight:500;color:var(--text-muted);background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:6px} .task-date-badge.overdue{color:var(--warning);background:rgba(253,203,110,0.1)}
+        .task-actions{display:flex;gap:4px;align-items:center;flex-shrink:0} .task-btn{width:32px;height:32px;border:none;background:rgba(255,255,255,0.04);color:var(--text-muted);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.2s}
+        .task-btn:hover{background:rgba(255,255,255,0.08);color:var(--text-primary)} .task-btn.transfer{color:var(--accent-light)} .task-btn.transfer:hover{background:var(--accent-glow)} .task-btn.delete:hover{background:rgba(255,107,107,0.15);color:var(--danger)}
+        .empty-state{text-align:center;padding:48px 16px} .empty-icon{font-size:48px;margin-bottom:12px;opacity:0.6} .empty-text{font-size:15px;color:var(--text-secondary)} .empty-sub{font-size:13px;color:var(--text-muted);margin-top:4px}
+        .overdue-banner{background:linear-gradient(135deg,rgba(253,203,110,0.1),rgba(255,107,107,0.08));border:1px solid rgba(253,203,110,0.2);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+        .overdue-banner-icon{font-size:20px} .overdue-banner-text{font-size:13px;color:var(--warning);font-weight:500;flex:1}
+        .btn-transfer-all{padding:8px 14px;background:var(--warning);color:var(--bg-primary);border:none;border-radius:var(--radius-sm);font-family:'Onest',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap} .btn-transfer-all:active{transform:scale(0.95)}
+        .history-day{margin-bottom:24px} .history-day-header{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--text-secondary);padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:10px}
+        .toast{position:fixed;bottom:calc(20px + var(--safe-bottom));left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg-card);color:var(--text-primary);padding:12px 20px;border-radius:var(--radius);font-size:14px;font-weight:500;box-shadow:var(--shadow);border:1px solid var(--border);transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);z-index:100;text-align:center;max-width:90%} .toast.show{transform:translateX(-50%) translateY(0)}
+        .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:200;align-items:center;justify-content:center;padding:24px} .overlay.show{display:flex}
+        .dialog{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:320px;width:100%;text-align:center}
+        .dialog-text{font-size:15px;margin-bottom:20px;line-height:1.5} .dialog-actions{display:flex;gap:8px}
+        .dialog-btn{flex:1;padding:12px;border:none;border-radius:var(--radius-sm);font-family:'Onest',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:transform 0.2s} .dialog-btn:active{transform:scale(0.95)} .dialog-btn.cancel{background:var(--bg-card);color:var(--text-secondary)} .dialog-btn.confirm{background:var(--danger);color:#fff}
+        ::-webkit-scrollbar{width:0} .hidden{display:none !important}
+        .loading-screen{display:flex;align-items:center;justify-content:center;min-height:80dvh;flex-direction:column;gap:16px}
+        .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite} @keyframes spin{to{transform:rotate(360deg)}}
+        @media(prefers-color-scheme:light){:root{--bg-primary:#f5f4f8;--bg-secondary:#eae9f0;--bg-card:#fff;--text-primary:#1a1a2e;--text-secondary:#6b6888;--text-muted:#9996ad;--border:rgba(0,0,0,0.06);--shadow:0 8px 32px rgba(0,0,0,0.08)}}
     </style>
 </head>
 <body>
-    <div class="app" id="app">
-        <div class="sync-indicator" id="syncIndicator"><span class="sync-dot" id="syncDot"></span><span id="syncText">Синхронизация…</span></div>
-        <div class="loading-screen" id="screenLoading"><div class="spinner"></div><div style="font-size:14px;color:var(--text-secondary)">Загрузка…</div></div>
-        <div class="auth-screen hidden" id="screenAuth">
-            <div class="auth-logo">NotePaid</div>
-            <div class="auth-subtitle">Ежедневник с облачной синхронизацией</div>
-            <div class="auth-form">
-                <input type="email" class="auth-input" id="authEmail" placeholder="Ваш email" autocomplete="email" inputmode="email">
-                <button class="auth-btn" id="authBtn">Получить ссылку для входа</button>
-                <div class="auth-msg" id="authMsg"></div>
-            </div>
-            <div class="auth-footer">Мы отправим magic link на ваш email.<br>Без пароля — просто нажмите на ссылку в письме.</div>
+<div class="app" id="app">
+    <div class="sync-indicator" id="syncIndicator"><span class="sync-dot" id="syncDot"></span><span id="syncText"></span></div>
+    <div class="loading-screen" id="screenLoading"><div class="spinner"></div><div style="font-size:14px;color:var(--text-secondary)">Загрузка…</div></div>
+
+    <!-- Step 1: Email -->
+    <div class="auth-screen hidden" id="screenAuthEmail">
+        <div class="auth-logo">Планёр</div>
+        <div class="auth-subtitle">Ежедневник с облачной синхронизацией</div>
+        <div class="auth-form">
+            <input type="email" class="auth-input" id="authEmail" placeholder="Ваш email" autocomplete="email" inputmode="email">
+            <button class="auth-btn" id="btnSendCode">Получить код</button>
+            <div class="auth-msg" id="authMsgEmail"></div>
         </div>
-        <div class="hidden" id="screenMain">
-            <div class="user-bar"><span class="user-email" id="userEmail"></span><button class="btn-logout" id="btnLogout">Выйти</button></div>
-            <header class="header"><div class="header-date" id="headerDate"></div><h1 class="header-title">Планёр</h1><div class="header-stats" id="headerStats"></div></header>
-            <nav class="tabs" id="tabs">
-                <button class="tab active" data-tab="today">Сегодня<span class="tab-badge" id="badgeToday">0</span></button>
-                <button class="tab" data-tab="overdue">Просрочено<span class="tab-badge" id="badgeOverdue">0</span></button>
-                <button class="tab" data-tab="history">История<span class="tab-badge" id="badgeHistory">0</span></button>
-            </nav>
-            <section id="tabToday">
-                <div class="input-area"><input type="text" id="taskInput" placeholder="Новый план на сегодня…" autocomplete="off"><button class="btn-add" id="btnAdd" aria-label="Добавить">+</button></div>
-                <div id="overdueBanner"></div><div class="task-list" id="todayList"></div>
-            </section>
-            <section class="hidden" id="tabOverdue"><div class="task-list" id="overdueList"></div></section>
-            <section class="hidden" id="tabHistory"><div id="historyList"></div></section>
+        <div class="auth-footer">Мы отправим 6-значный код на ваш email.<br>Без пароля — просто введите код из письма.</div>
+    </div>
+
+    <!-- Step 2: OTP code -->
+    <div class="auth-screen hidden" id="screenAuthOtp">
+        <div class="auth-logo">Планёр</div>
+        <div class="auth-subtitle" id="otpSubtitle">Введите код из письма</div>
+        <div class="auth-form">
+            <div class="otp-inputs" id="otpInputs">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="0">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="1">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="2">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="3">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="4">
+                <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" pattern="[0-9]" data-idx="5">
+            </div>
+            <button class="auth-btn" id="btnVerifyCode">Подтвердить</button>
+            <div class="auth-msg" id="authMsgOtp"></div>
+            <button class="auth-back" id="btnBackToEmail">← Другой email</button>
         </div>
     </div>
-    <div class="toast" id="toast"></div>
-    <div class="overlay" id="overlay"><div class="dialog"><div class="dialog-text" id="dialogText"></div><div class="dialog-actions"><button class="dialog-btn cancel" id="dialogCancel">Отмена</button><button class="dialog-btn confirm" id="dialogConfirm">Удалить</button></div></div></div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <script>
-    (function(){
-        'use strict';
+    <!-- Main app -->
+    <div class="hidden" id="screenMain">
+        <div class="user-bar"><span class="user-email" id="userEmail"></span><button class="btn-logout" id="btnLogout">Выйти</button></div>
+        <header class="header"><div class="header-date" id="headerDate"></div><h1 class="header-title">Планёр</h1><div class="header-stats" id="headerStats"></div></header>
+        <nav class="tabs" id="tabs">
+            <button class="tab active" data-tab="today">Сегодня<span class="tab-badge" id="badgeToday">0</span></button>
+            <button class="tab" data-tab="overdue">Просрочено<span class="tab-badge" id="badgeOverdue">0</span></button>
+            <button class="tab" data-tab="history">История<span class="tab-badge" id="badgeHistory">0</span></button>
+        </nav>
+        <section id="tabToday"><div class="input-area"><input type="text" id="taskInput" placeholder="Новый план на сегодня…" autocomplete="off"><button class="btn-add" id="btnAdd">+</button></div><div id="overdueBanner"></div><div class="task-list" id="todayList"></div></section>
+        <section class="hidden" id="tabOverdue"><div class="task-list" id="overdueList"></div></section>
+        <section class="hidden" id="tabHistory"><div id="historyList"></div></section>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="overlay" id="overlay"><div class="dialog"><div class="dialog-text" id="dialogText"></div><div class="dialog-actions"><button class="dialog-btn cancel" id="dialogCancel">Отмена</button><button class="dialog-btn confirm" id="dialogConfirm">Удалить</button></div></div></div>
 
-        const SUPABASE_URL = 'https://rsdykfuhakmuzxvlvwci.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_bK0FrX2QLB9HQJTew3k_lQ_N9IMHDv2';
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+'use strict';
+const SUPABASE_URL='https://rsdykfuhakmuzxvlvwci.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_bK0FrX2QLB9HQJTew3k_lQ_N9IMHDv2';
+const supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{flowType:'implicit',autoRefreshToken:true,persistSession:true,detectSessionInUrl:true}});
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: { flowType:'implicit', autoRefreshToken:true, persistSession:true, detectSessionInUrl:true }
-        });
+// === IndexedDB ===
+const DB='PlannerDB_v4',STORE_T='tasks',STORE_Q='sync_queue';
+function openDB(){return new Promise((ok,no)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains(STORE_T)){db.createObjectStore(STORE_T,{keyPath:'id'}).createIndex('date','date',{unique:false})}if(!db.objectStoreNames.contains(STORE_Q))db.createObjectStore(STORE_Q,{keyPath:'id',autoIncrement:true})};r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function idbAll(s){const db=await openDB();return new Promise((ok,no)=>{const r=db.transaction(s,'readonly').objectStore(s).getAll();r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function idbPut(s,v){const db=await openDB();return new Promise((ok,no)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).put(v);tx.oncomplete=()=>ok();tx.onerror=()=>no(tx.error)})}
+async function idbDel(s,k){const db=await openDB();return new Promise((ok,no)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).delete(k);tx.oncomplete=()=>ok();tx.onerror=()=>no(tx.error)})}
+async function idbClear(s){const db=await openDB();return new Promise((ok,no)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).clear();tx.oncomplete=()=>ok();tx.onerror=()=>no(tx.error)})}
 
-        const DB_NAME='PlannerDB_v3', DB_VERSION=1, STORE_TASKS='tasks', STORE_QUEUE='sync_queue';
-        function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VERSION);r.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains(STORE_TASKS)){const s=db.createObjectStore(STORE_TASKS,{keyPath:'id'});s.createIndex('date','date',{unique:false});}if(!db.objectStoreNames.contains(STORE_QUEUE)){db.createObjectStore(STORE_QUEUE,{keyPath:'id',autoIncrement:true});}};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
-        async function idbGetAll(s){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(s,'readonly');const r=tx.objectStore(s).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
-        async function idbPut(s,item){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).put(item);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
-        async function idbDelete(s,key){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).delete(key);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
-        async function idbClear(s){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).clear();tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+// === Sync ===
+async function enqueue(a,p){await idbPut(STORE_Q,{action:a,payload:p,ts:Date.now()})}
+async function flushQueue(){const q=await idbAll(STORE_Q);if(!q.length)return;showSync('syncing','Синхронизация…');for(const i of q){try{if(i.action==='upsert'){const{error}=await supabase.from('tasks').upsert(i.payload,{onConflict:'id'});if(error)throw error}else{const{error}=await supabase.from('tasks').delete().eq('id',i.payload.id);if(error)throw error}await idbDel(STORE_Q,i.id)}catch(e){console.warn('sync fail:',e);showSync('error','Ошибка');return}}showSync('ok','Синхронизировано')}
+async function pull(){try{if(!uid)return;const{data,error}=await supabase.from('tasks').select('*').eq('user_id',uid);if(error)throw error;if(!data)return;const local=await idbAll(STORE_T),lm={},rm={};local.forEach(t=>lm[t.id]=t);data.forEach(t=>rm[t.id]=t);for(const r of data){const l=lm[r.id];if(!l||new Date(r.updated_at)>=new Date(l.updated_at||0))await idbPut(STORE_T,r)}for(const l of local){if(!rm[l.id]&&l.user_id===uid)try{await supabase.from('tasks').upsert(l,{onConflict:'id'})}catch(e){}}allTasks=await idbAll(STORE_T)}catch(e){console.warn('pull fail:',e)}}
+async function push(t){if(!navigator.onLine){await enqueue('upsert',t);return}try{const{error}=await supabase.from('tasks').upsert(t,{onConflict:'id'});if(error)throw error;showSyncBrief()}catch(e){await enqueue('upsert',t)}}
+async function cloudDel(id){if(!navigator.onLine){await enqueue('delete',{id});return}try{const{error}=await supabase.from('tasks').delete().eq('id',id);if(error)throw error;showSyncBrief()}catch(e){await enqueue('delete',{id})}}
+window.addEventListener('online',async()=>{await flushQueue();await pull();renderAll()});
 
-        async function enqueueSync(action,payload){await idbPut(STORE_QUEUE,{action,payload,timestamp:Date.now()});}
-        async function flushSyncQueue(){const queue=await idbGetAll(STORE_QUEUE);if(!queue.length)return;showSync('syncing','Синхронизация…');for(const item of queue){try{if(item.action==='upsert'){const{error}=await supabase.from('tasks').upsert(item.payload,{onConflict:'id'});if(error)throw error;}else if(item.action==='delete'){const{error}=await supabase.from('tasks').delete().eq('id',item.payload.id);if(error)throw error;}await idbDelete(STORE_QUEUE,item.id);}catch(err){console.warn('Sync fail:',err);showSync('error','Ошибка синхронизации');return;}}showSync('ok','Синхронизировано');}
+// === Utils ===
+const today=()=>new Date().toISOString().slice(0,10);
+const daysB=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/864e5);
+function fmtDate(s){const d=new Date(s+'T00:00:00'),m=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'],w=['вс','пн','вт','ср','чт','пт','сб'];return d.getDate()+' '+m[d.getMonth()]+', '+w[d.getDay()]}
+function fmtShort(s){const d=new Date(s+'T00:00:00'),m=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];return d.getDate()+' '+m[d.getMonth()]}
+const genId=()=>crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2,9));
+const now=()=>new Date().toISOString();
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function plur(n,a,b,c){const m=n%10,h=n%100;if(h>=11&&h<=19)return c;if(m===1)return a;if(m>=2&&m<=4)return b;return c}
 
-        async function pullFromCloud(){try{const{data:sd}=await supabase.auth.getSession();if(!sd?.session?.user)return;const uid=sd.session.user.id;const{data,error}=await supabase.from('tasks').select('*').eq('user_id',uid);if(error)throw error;if(!data)return;const local=await idbGetAll(STORE_TASKS);const map={};local.forEach(t=>map[t.id]=t);for(const r of data){const l=map[r.id];if(!l||new Date(r.updated_at)>=new Date(l.updated_at||0))await idbPut(STORE_TASKS,r);}allTasks=await idbGetAll(STORE_TASKS);}catch(e){console.warn('Pull failed:',e);}}
-        async function pushToCloud(task){if(!navigator.onLine){await enqueueSync('upsert',task);return;}try{const{error}=await supabase.from('tasks').upsert(task,{onConflict:'id'});if(error)throw error;showSyncBrief();}catch(e){console.warn('Push failed:',e);await enqueueSync('upsert',task);}}
-        async function deleteFromCloud(id){if(!navigator.onLine){await enqueueSync('delete',{id});return;}try{const{error}=await supabase.from('tasks').delete().eq('id',id);if(error)throw error;showSyncBrief();}catch(e){console.warn('Cloud delete failed:',e);await enqueueSync('delete',{id});}}
-        window.addEventListener('online',async()=>{await flushSyncQueue();await pullFromCloud();renderAll();});
+// === State ===
+let allTasks=[],activeTab='today',delCb=null,uid=null,appReady=false,pendingEmail='';
 
-        function todayStr(){return new Date().toISOString().slice(0,10);}
-        function daysBetween(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000);}
-        function formatDate(ds){const d=new Date(ds+'T00:00:00');const m=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];const w=['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];return`${d.getDate()} ${m[d.getMonth()]}, ${w[d.getDay()]}`;}
-        function formatDateShort(ds){const d=new Date(ds+'T00:00:00');const m=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];return`${d.getDate()} ${m[d.getMonth()]}`;}
-        function genId(){return crypto.randomUUID?crypto.randomUUID():(Date.now().toString(36)+Math.random().toString(36).slice(2,9));}
-        function nowISO(){return new Date().toISOString();}
+// === DOM ===
+const $=s=>document.querySelector(s);
+const screenLoading=$('#screenLoading'),screenAuthEmail=$('#screenAuthEmail'),screenAuthOtp=$('#screenAuthOtp'),screenMain=$('#screenMain');
+const authEmail=$('#authEmail'),btnSendCode=$('#btnSendCode'),authMsgEmail=$('#authMsgEmail');
+const otpSubtitle=$('#otpSubtitle'),otpInputs=$('#otpInputs'),btnVerifyCode=$('#btnVerifyCode'),authMsgOtp=$('#authMsgOtp'),btnBackToEmail=$('#btnBackToEmail');
+const userEmailEl=$('#userEmail'),btnLogout=$('#btnLogout');
+const syncIndicator=$('#syncIndicator'),syncDot=$('#syncDot'),syncTextEl=$('#syncText');
+const headerDate=$('#headerDate'),headerStats=$('#headerStats');
+const bToday=$('#badgeToday'),bOver=$('#badgeOverdue'),bHist=$('#badgeHistory');
+const tabsEl=$('#tabs'),tabToday=$('#tabToday'),tabOverdue=$('#tabOverdue'),tabHistory=$('#tabHistory');
+const taskInput=$('#taskInput'),btnAdd=$('#btnAdd');
+const todayList=$('#todayList'),overdueList=$('#overdueList'),historyList=$('#historyList'),overdueBanner=$('#overdueBanner');
+const toastEl=$('#toast'),overlay=$('#overlay'),dialogText=$('#dialogText'),dialogCancel=$('#dialogCancel'),dialogConfirm=$('#dialogConfirm');
 
-        let allTasks=[],activeTab='today',deleteCallback=null,currentUserId=null,appInitialized=false;
-        const $=s=>document.querySelector(s);
-        const screenLoading=$('#screenLoading'),screenAuth=$('#screenAuth'),screenMain=$('#screenMain');
-        const authEmail=$('#authEmail'),authBtn=$('#authBtn'),authMsg=$('#authMsg');
-        const userEmailEl=$('#userEmail'),btnLogout=$('#btnLogout');
-        const syncIndicator=$('#syncIndicator'),syncDot=$('#syncDot'),syncText=$('#syncText');
-        const headerDate=$('#headerDate'),headerStats=$('#headerStats');
-        const badgeToday=$('#badgeToday'),badgeOverdue=$('#badgeOverdue'),badgeHistory=$('#badgeHistory');
-        const tabsEl=$('#tabs'),tabToday=$('#tabToday'),tabOverdue=$('#tabOverdue'),tabHistory=$('#tabHistory');
-        const taskInput=$('#taskInput'),btnAdd=$('#btnAdd');
-        const todayList=$('#todayList'),overdueList=$('#overdueList'),historyList=$('#historyList'),overdueBanner=$('#overdueBanner');
-        const toastEl=$('#toast'),overlay=$('#overlay'),dialogText=$('#dialogText'),dialogCancel=$('#dialogCancel'),dialogConfirm=$('#dialogConfirm');
+function showScreen(n){screenLoading.classList.toggle('hidden',n!=='loading');screenAuthEmail.classList.toggle('hidden',n!=='email');screenAuthOtp.classList.toggle('hidden',n!=='otp');screenMain.classList.toggle('hidden',n!=='main')}
+let syncTO;function showSync(st,tx){syncDot.className='sync-dot'+(st==='syncing'?' syncing':st==='error'?' error':'');syncTextEl.textContent=tx;syncIndicator.classList.add('show');clearTimeout(syncTO);if(st!=='syncing')syncTO=setTimeout(()=>syncIndicator.classList.remove('show'),2500)}
+function showSyncBrief(){showSync('ok','Сохранено')}
+let toastTO;function showToast(m){toastEl.textContent=m;toastEl.classList.add('show');clearTimeout(toastTO);toastTO=setTimeout(()=>toastEl.classList.remove('show'),2200)}
 
-        function showScreen(n){screenLoading.classList.toggle('hidden',n!=='loading');screenAuth.classList.toggle('hidden',n!=='auth');screenMain.classList.toggle('hidden',n!=='main');}
+// === Auth: Step 1 — send OTP code ===
+let cooldown=false;
+btnSendCode.addEventListener('click',async()=>{
+    const email=authEmail.value.trim();
+    if(!email){authMsgEmail.textContent='Введите email';authMsgEmail.className='auth-msg error';return}
+    if(cooldown){authMsgEmail.textContent='Подождите перед повторной отправкой';authMsgEmail.className='auth-msg error';return}
+    btnSendCode.disabled=true;btnSendCode.textContent='Отправляем…';authMsgEmail.textContent='';
+    try{
+        const{error}=await supabase.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+        if(error)throw error;
+        pendingEmail=email;
+        authMsgEmail.textContent='Код отправлен!';authMsgEmail.className='auth-msg ok';
+        cooldown=true;let r=60;const iv=setInterval(()=>{r--;if(r<=0){clearInterval(iv);cooldown=false;btnSendCode.textContent='Получить код';btnSendCode.disabled=false}else btnSendCode.textContent='Повторить через '+r+'с'},1000);
+        // Switch to OTP screen
+        setTimeout(()=>{showScreen('otp');otpSubtitle.textContent='Код отправлен на '+email;otpInputs.querySelectorAll('.otp-digit')[0].focus()},600);
+    }catch(e){authMsgEmail.textContent='Ошибка: '+e.message;authMsgEmail.className='auth-msg error';btnSendCode.disabled=false;btnSendCode.textContent='Получить код'}
+});
+authEmail.addEventListener('keydown',e=>{if(e.key==='Enter')btnSendCode.click()});
 
-        // === AUTH ===
-        authBtn.addEventListener('click',async()=>{
-            const email=authEmail.value.trim();
-            if(!email){authMsg.textContent='Введите email';authMsg.className='auth-msg error';return;}
-            authBtn.disabled=true;authBtn.textContent='Отправляем…';authMsg.textContent='';
-            try{
-                let redir=window.location.origin+window.location.pathname;
-                if(!redir.endsWith('/')&&!redir.endsWith('.html'))redir+='/';
-                console.log('[Planner] signInWithOtp redirect:',redir);
-                const{error}=await supabase.auth.signInWithOtp({email,options:{emailRedirectTo:redir}});
-                if(error)throw error;
-                authMsg.textContent='Ссылка отправлена! Проверьте почту (и папку «Спам»).';authMsg.className='auth-msg ok';
-            }catch(err){authMsg.textContent='Ошибка: '+err.message;authMsg.className='auth-msg error';
-            }finally{authBtn.disabled=false;authBtn.textContent='Получить ссылку для входа';}
-        });
-        authEmail.addEventListener('keydown',e=>{if(e.key==='Enter')authBtn.click();});
-        btnLogout.addEventListener('click',async()=>{await supabase.auth.signOut();currentUserId=null;allTasks=[];appInitialized=false;try{await idbClear(STORE_TASKS);await idbClear(STORE_QUEUE);}catch(e){}showScreen('auth');});
+// === Auth: Step 2 — verify OTP code ===
+// Auto-advance between OTP digits
+const digits=otpInputs.querySelectorAll('.otp-digit');
+digits.forEach((inp,i)=>{
+    inp.addEventListener('input',e=>{
+        inp.value=inp.value.replace(/[^0-9]/g,'');
+        if(inp.value&&i<5)digits[i+1].focus();
+        if(i===5&&inp.value)btnVerifyCode.click();
+    });
+    inp.addEventListener('keydown',e=>{
+        if(e.key==='Backspace'&&!inp.value&&i>0){digits[i-1].focus();digits[i-1].value=''}
+    });
+    inp.addEventListener('paste',e=>{
+        e.preventDefault();
+        const text=(e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+        for(let j=0;j<text.length&&j<6;j++){digits[j].value=text[j]}
+        if(text.length>=6)btnVerifyCode.click();else if(text.length>0)digits[Math.min(text.length,5)].focus();
+    });
+});
 
-        let syncTimeout;
-        function showSync(status,text){syncDot.className='sync-dot'+(status==='syncing'?' syncing':status==='error'?' error':'');syncText.textContent=text;syncIndicator.classList.add('show');clearTimeout(syncTimeout);if(status!=='syncing')syncTimeout=setTimeout(()=>syncIndicator.classList.remove('show'),2500);}
-        function showSyncBrief(){showSync('ok','Сохранено');}
+btnVerifyCode.addEventListener('click',async()=>{
+    const code=Array.from(digits).map(d=>d.value).join('');
+    if(code.length!==6){authMsgOtp.textContent='Введите все 6 цифр';authMsgOtp.className='auth-msg error';return}
+    btnVerifyCode.disabled=true;btnVerifyCode.textContent='Проверяем…';authMsgOtp.textContent='';
+    try{
+        const{data,error}=await supabase.auth.verifyOtp({email:pendingEmail,token:code,type:'email'});
+        if(error)throw error;
+        if(data?.session?.user){await initApp(data.session.user)}
+    }catch(e){
+        authMsgOtp.textContent='Неверный или истёкший код';authMsgOtp.className='auth-msg error';
+        digits.forEach(d=>d.value='');digits[0].focus();
+    }finally{btnVerifyCode.disabled=false;btnVerifyCode.textContent='Подтвердить'}
+});
 
-        async function cleanupOldTasks(){const today=todayStr();const del=[];for(const t of allTasks){const age=daysBetween(t.date,today);if(!t.completed&&age>2)del.push(t.id);if(t.completed&&age>30)del.push(t.id);}for(const id of del){await idbDelete(STORE_TASKS,id);await deleteFromCloud(id);}allTasks=allTasks.filter(t=>!del.includes(t.id));}
+btnBackToEmail.addEventListener('click',()=>{showScreen('email');digits.forEach(d=>d.value='');authMsgOtp.textContent=''});
+btnLogout.addEventListener('click',async()=>{await supabase.auth.signOut();uid=null;appReady=false;allTasks=[];await idbClear(STORE_T);await idbClear(STORE_Q);showScreen('email')});
 
-        function getTodayTasks(){const today=todayStr();return allTasks.filter(t=>t.date===today).sort((a,b)=>{if(a.completed!==b.completed)return a.completed?1:-1;return(a.created_at||'').localeCompare(b.created_at||'');});}
-        function getOverdueTasks(){const today=todayStr();return allTasks.filter(t=>{const age=daysBetween(t.date,today);return!t.completed&&age>0&&age<=2;}).sort((a,b)=>(a.date||'').localeCompare(b.date||''));}
-        function getHistoryTasks(){const today=todayStr();return allTasks.filter(t=>t.completed&&t.date!==today).sort((a,b)=>(b.date||'').localeCompare(a.date||''));}
+// === Task logic ===
+async function cleanup(){const td=today(),del=[];for(const t of allTasks){const a=daysB(t.date,td);if(!t.completed&&a>2)del.push(t.id);if(t.completed&&a>30)del.push(t.id)}for(const id of del){await idbDel(STORE_T,id);await cloudDel(id)}allTasks=allTasks.filter(t=>!del.includes(t.id))}
+function getToday(){const td=today();return allTasks.filter(t=>t.date===td).sort((a,b)=>{if(a.completed!==b.completed)return a.completed?1:-1;return(a.created_at||'').localeCompare(b.created_at||'')})}
+function getOverdue(){const td=today();return allTasks.filter(t=>{const a=daysB(t.date,td);return!t.completed&&a>0&&a<=2})}
+function getHistory(){const td=today();return allTasks.filter(t=>t.completed&&t.date!==td).sort((a,b)=>(b.date||'').localeCompare(a.date||''))}
 
-        function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-        function pluralize(n,one,few,many){const m10=n%10,m100=n%100;if(m100>=11&&m100<=19)return many;if(m10===1)return one;if(m10>=2&&m10<=4)return few;return many;}
+// === Rendering ===
+function renderHeader(){headerDate.textContent=fmtDate(today());const ts=getToday(),d=ts.filter(t=>t.completed).length;headerStats.innerHTML='<div class="stat"><span class="stat-value">'+ts.length+'</span><span class="stat-label">Всего</span></div><div class="stat"><span class="stat-value done">'+d+'</span><span class="stat-label">Готово</span></div><div class="stat"><span class="stat-value pending">'+(ts.length-d)+'</span><span class="stat-label">Осталось</span></div>'}
+function renderBadges(){bToday.textContent=getToday().filter(t=>!t.completed).length;bOver.textContent=getOverdue().length;bHist.textContent=getHistory().length}
+function renderTabs(){tabToday.classList.toggle('hidden',activeTab!=='today');tabOverdue.classList.toggle('hidden',activeTab!=='overdue');tabHistory.classList.toggle('hidden',activeTab!=='history');tabsEl.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===activeTab))}
+function mkCard(t,o={}){const c=document.createElement('div');c.className='task-card'+(t.completed?' completed':'')+(o.isOverdue?' overdue':'');c.dataset.id=t.id;let m=o.showDate?'<div class="task-meta"><span class="task-date-badge'+(o.isOverdue?' overdue':'')+'">'+fmtShort(t.date)+'</span></div>':'';let a='';if(o.showTransfer&&!t.completed)a+='<button class="task-btn transfer" data-action="transfer">↪</button>';a+='<button class="task-btn delete" data-action="delete">✕</button>';c.innerHTML='<button class="task-check" data-action="toggle">'+(t.completed?'✓':'')+'</button><div class="task-body"><div class="task-text">'+esc(t.text)+'</div>'+m+'</div><div class="task-actions">'+a+'</div>';return c}
+function renderToday(){const ts=getToday();todayList.innerHTML='';const ov=getOverdue();if(ov.length&&activeTab==='today'){overdueBanner.innerHTML='<div class="overdue-banner"><span class="overdue-banner-icon">⚠️</span><span class="overdue-banner-text">'+ov.length+' невыполн. '+plur(ov.length,'план','плана','планов')+'</span><button class="btn-transfer-all" id="btnTA">Перенести все</button></div>';const b=$('#btnTA');if(b)b.onclick=transferAll}else overdueBanner.innerHTML='';if(!ts.length){todayList.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Планов на сегодня пока нет</div><div class="empty-sub">Добавьте первый план выше</div></div>';return}const p=ts.filter(t=>!t.completed),d=ts.filter(t=>t.completed);if(p.length){const l=document.createElement('div');l.className='section-label';l.textContent='В работе';todayList.appendChild(l);p.forEach(t=>todayList.appendChild(mkCard(t)))}if(d.length){const l=document.createElement('div');l.className='section-label';l.textContent='Выполнено';todayList.appendChild(l);d.forEach(t=>todayList.appendChild(mkCard(t)))}}
+function renderOverdue(){const ts=getOverdue();overdueList.innerHTML='';if(!ts.length){overdueList.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">Нет просроченных</div></div>';return}ts.forEach(t=>overdueList.appendChild(mkCard(t,{showTransfer:true,showDate:true,isOverdue:true})))}
+function renderHistory(){const ts=getHistory();historyList.innerHTML='';if(!ts.length){historyList.innerHTML='<div class="empty-state"><div class="empty-icon">📖</div><div class="empty-text">История пока пуста</div></div>';return}const g={};ts.forEach(t=>{if(!g[t.date])g[t.date]=[];g[t.date].push(t)});Object.keys(g).sort().reverse().forEach(d=>{const dd=document.createElement('div');dd.className='history-day';dd.innerHTML='<div class="history-day-header">'+fmtDate(d)+'</div>';const l=document.createElement('div');l.className='task-list';g[d].forEach(t=>l.appendChild(mkCard(t)));dd.appendChild(l);historyList.appendChild(dd)})}
+function renderAll(){renderHeader();renderBadges();renderTabs();renderToday();renderOverdue();renderHistory()}
 
-        function renderHeader(){headerDate.textContent=formatDate(todayStr());const t=getTodayTasks(),done=t.filter(x=>x.completed).length,total=t.length;headerStats.innerHTML=`<div class="stat"><span class="stat-value">${total}</span><span class="stat-label">Всего</span></div><div class="stat"><span class="stat-value done">${done}</span><span class="stat-label">Готово</span></div><div class="stat"><span class="stat-value pending">${total-done}</span><span class="stat-label">Осталось</span></div>`;}
-        function renderBadges(){badgeToday.textContent=getTodayTasks().filter(t=>!t.completed).length;badgeOverdue.textContent=getOverdueTasks().length;badgeHistory.textContent=getHistoryTasks().length;}
-        function renderTabs(){tabToday.classList.toggle('hidden',activeTab!=='today');tabOverdue.classList.toggle('hidden',activeTab!=='overdue');tabHistory.classList.toggle('hidden',activeTab!=='history');tabsEl.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===activeTab));}
+// === Actions ===
+async function addTask(text){text=text.trim();if(!text)return;const n=now(),t={id:genId(),user_id:uid,text,date:today(),completed:false,created_at:n,updated_at:n};await idbPut(STORE_T,t);allTasks.push(t);taskInput.value='';renderAll();showToast('План добавлен');await push(t)}
+async function toggle(id){const t=allTasks.find(x=>x.id===id);if(!t)return;t.completed=!t.completed;t.updated_at=now();await idbPut(STORE_T,t);renderAll();await push(t)}
+async function del(id){await idbDel(STORE_T,id);allTasks=allTasks.filter(t=>t.id!==id);renderAll();showToast('Удалён');await cloudDel(id)}
+async function transfer(id){const t=allTasks.find(x=>x.id===id);if(!t)return;t.date=today();t.updated_at=now();await idbPut(STORE_T,t);renderAll();showToast('Перенесён');await push(t)}
+async function transferAll(){const ov=getOverdue(),td=today(),n=now();for(const t of ov){t.date=td;t.updated_at=n;await idbPut(STORE_T,t);await push(t)}renderAll();showToast(ov.length+' '+plur(ov.length,'перенесён','перенесено','перенесено'))}
 
-        function createTaskCard(task,opts={}){const{showTransfer=false,showDate=false,isOverdue=false}=opts;const card=document.createElement('div');card.className='task-card'+(task.completed?' completed':'')+(isOverdue?' overdue':'');card.dataset.id=task.id;let meta=showDate?`<div class="task-meta"><span class="task-date-badge ${isOverdue?'overdue':''}">${formatDateShort(task.date)}</span></div>`:'';let act='';if(showTransfer&&!task.completed)act+=`<button class="task-btn transfer" data-action="transfer" title="Перенести">↪</button>`;act+=`<button class="task-btn delete" data-action="delete" title="Удалить">✕</button>`;card.innerHTML=`<button class="task-check" data-action="toggle">${task.completed?'✓':''}</button><div class="task-body"><div class="task-text">${escapeHtml(task.text)}</div>${meta}</div><div class="task-actions">${act}</div>`;return card;}
+tabsEl.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t){activeTab=t.dataset.tab;renderAll()}});
+btnAdd.addEventListener('click',()=>addTask(taskInput.value));
+taskInput.addEventListener('keydown',e=>{if(e.key==='Enter')addTask(taskInput.value)});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const c=b.closest('.task-card');if(!c)return;const id=c.dataset.id,a=b.dataset.action;if(a==='toggle')toggle(id);if(a==='transfer')transfer(id);if(a==='delete'){dialogText.textContent='Удалить этот план?';dialogConfirm.textContent='Удалить';dialogConfirm.className='dialog-btn confirm';overlay.classList.add('show');delCb=()=>del(id)}});
+dialogCancel.addEventListener('click',()=>{overlay.classList.remove('show');delCb=null});
+dialogConfirm.addEventListener('click',()=>{overlay.classList.remove('show');if(delCb)delCb();delCb=null});
+overlay.addEventListener('click',e=>{if(e.target===overlay){overlay.classList.remove('show');delCb=null}});
 
-        function renderTodayTab(){const tasks=getTodayTasks();todayList.innerHTML='';const ov=getOverdueTasks();if(ov.length>0&&activeTab==='today'){overdueBanner.innerHTML=`<div class="overdue-banner"><span class="overdue-banner-icon">⚠️</span><span class="overdue-banner-text">${ov.length} невыполн. ${pluralize(ov.length,'план','плана','планов')}</span><button class="btn-transfer-all" id="btnTransferAll">Перенести все</button></div>`;const b=document.getElementById('btnTransferAll');if(b)b.addEventListener('click',transferAllOverdue);}else{overdueBanner.innerHTML='';}if(!tasks.length){todayList.innerHTML=`<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Планов на сегодня пока нет</div><div class="empty-sub">Добавьте первый план выше</div></div>`;return;}const p=tasks.filter(t=>!t.completed),d=tasks.filter(t=>t.completed);if(p.length){const l=document.createElement('div');l.className='section-label';l.textContent='В работе';todayList.appendChild(l);p.forEach(t=>todayList.appendChild(createTaskCard(t)));}if(d.length){const l=document.createElement('div');l.className='section-label';l.textContent='Выполнено';todayList.appendChild(l);d.forEach(t=>todayList.appendChild(createTaskCard(t)));}}
+// === Init ===
+async function initApp(user){
+    if(appReady&&uid===user.id)return;
+    appReady=true;uid=user.id;userEmailEl.textContent=user.email;
+    allTasks=await idbAll(STORE_T);showScreen('main');renderAll();
+    if(navigator.onLine){await flushQueue();await pull();await cleanup();renderAll()}else{await cleanup();renderAll()}
+}
 
-        function renderOverdueTab(){const tasks=getOverdueTasks();overdueList.innerHTML='';if(!tasks.length){overdueList.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">Нет просроченных планов</div><div class="empty-sub">Все задачи выполнены вовремя</div></div>`;return;}tasks.forEach(t=>overdueList.appendChild(createTaskCard(t,{showTransfer:true,showDate:true,isOverdue:true})));}
-
-        function renderHistoryTab(){const tasks=getHistoryTasks();historyList.innerHTML='';if(!tasks.length){historyList.innerHTML=`<div class="empty-state"><div class="empty-icon">📖</div><div class="empty-text">История пока пуста</div><div class="empty-sub">Выполненные планы будут здесь</div></div>`;return;}const g={};tasks.forEach(t=>{if(!g[t.date])g[t.date]=[];g[t.date].push(t);});Object.keys(g).sort().reverse().forEach(date=>{const dv=document.createElement('div');dv.className='history-day';dv.innerHTML=`<div class="history-day-header">${formatDate(date)}</div>`;const ls=document.createElement('div');ls.className='task-list';g[date].forEach(t=>ls.appendChild(createTaskCard(t)));dv.appendChild(ls);historyList.appendChild(dv);});}
-
-        function renderAll(){renderHeader();renderBadges();renderTabs();renderTodayTab();renderOverdueTab();renderHistoryTab();}
-
-        async function addTask(text){text=text.trim();if(!text)return;const now=nowISO();const task={id:genId(),user_id:currentUserId,text,date:todayStr(),completed:false,created_at:now,updated_at:now};await idbPut(STORE_TASKS,task);allTasks.push(task);taskInput.value='';renderAll();showToast('План добавлен');await pushToCloud(task);}
-        async function toggleTask(id){const task=allTasks.find(t=>t.id===id);if(!task)return;task.completed=!task.completed;task.updated_at=nowISO();await idbPut(STORE_TASKS,task);renderAll();await pushToCloud(task);}
-        async function deleteTask(id){await idbDelete(STORE_TASKS,id);allTasks=allTasks.filter(t=>t.id!==id);renderAll();showToast('План удалён');await deleteFromCloud(id);}
-        async function transferTask(id){const task=allTasks.find(t=>t.id===id);if(!task)return;task.date=todayStr();task.updated_at=nowISO();await idbPut(STORE_TASKS,task);renderAll();showToast('План перенесён на сегодня');await pushToCloud(task);}
-        async function transferAllOverdue(){const ov=getOverdueTasks();const today=todayStr(),now=nowISO();for(const t of ov){t.date=today;t.updated_at=now;await idbPut(STORE_TASKS,t);await pushToCloud(t);}renderAll();showToast(`${ov.length} ${pluralize(ov.length,'план перенесён','плана перенесено','планов перенесено')}`);}
-
-        tabsEl.addEventListener('click',e=>{const tab=e.target.closest('.tab');if(!tab)return;activeTab=tab.dataset.tab;renderAll();});
-        btnAdd.addEventListener('click',()=>addTask(taskInput.value));
-        taskInput.addEventListener('keydown',e=>{if(e.key==='Enter')addTask(taskInput.value);});
-        document.addEventListener('click',e=>{const btn=e.target.closest('[data-action]');if(!btn)return;const card=btn.closest('.task-card');if(!card)return;const id=card.dataset.id,action=btn.dataset.action;if(action==='toggle')toggleTask(id);if(action==='transfer')transferTask(id);if(action==='delete')showConfirmDialog('Удалить этот план?',()=>deleteTask(id));});
-
-        function showConfirmDialog(text,onConfirm,label='Удалить',accent=false){dialogText.textContent=text;dialogConfirm.textContent=label;dialogConfirm.className='dialog-btn '+(accent?'confirm-accent':'confirm');overlay.classList.add('show');deleteCallback=onConfirm;}
-        dialogCancel.addEventListener('click',()=>{overlay.classList.remove('show');deleteCallback=null;});
-        dialogConfirm.addEventListener('click',()=>{overlay.classList.remove('show');if(deleteCallback)deleteCallback();deleteCallback=null;});
-        overlay.addEventListener('click',e=>{if(e.target===overlay){overlay.classList.remove('show');deleteCallback=null;}});
-
-        let toastTimeout;
-        function showToast(msg){toastEl.textContent=msg;toastEl.classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>toastEl.classList.remove('show'),2200);}
-
-        async function initApp(user){
-            if(appInitialized)return;
-            appInitialized=true;
-            currentUserId=user.id;
-            userEmailEl.textContent=user.email;
-            try{allTasks=await idbGetAll(STORE_TASKS);}catch(e){allTasks=[];}
-            showScreen('main');
-            renderAll();
-            if(navigator.onLine){await flushSyncQueue();await pullFromCloud();await cleanupOldTasks();renderAll();}
-            else{await cleanupOldTasks();renderAll();}
-        }
-
-        // === BOOT ===
-        async function boot(){
-            showScreen('loading');
-            console.log('[Planner] boot URL:',window.location.href);
-
-            // 1. Register auth listener BEFORE anything else
-            supabase.auth.onAuthStateChange(async(event,session)=>{
-                console.log('[Planner] authChange:',event,session?.user?.email||'none');
-                if(event==='SIGNED_IN'&&session?.user){
-                    // Clean hash if present
-                    if(window.location.hash&&window.location.hash.length>2){
-                        history.replaceState(null,'',window.location.pathname);
-                    }
-                    await initApp(session.user);
-                }else if(event==='TOKEN_REFRESHED'&&session?.user){
-                    if(!appInitialized)await initApp(session.user);
-                }else if(event==='SIGNED_OUT'){
-                    appInitialized=false;
-                    showScreen('auth');
-                }
-            });
-
-            // 2. If hash contains auth tokens, wait for Supabase to auto-process them
-            if(window.location.hash&&window.location.hash.includes('access_token')){
-                console.log('[Planner] Hash auth callback detected');
-                for(let i=0;i<30;i++){
-                    await new Promise(r=>setTimeout(r,200));
-                    if(appInitialized)return;
-                    try{
-                        const{data}=await supabase.auth.getSession();
-                        if(data?.session?.user){await initApp(data.session.user);return;}
-                    }catch(e){}
-                }
-                console.warn('[Planner] Hash callback failed to produce session');
-                history.replaceState(null,'',window.location.pathname);
-                showScreen('auth');
-                showToast('Ссылка устарела. Запросите новую.');
-                return;
-            }
-
-            // 3. If URL has ?code= (PKCE fallback), try exchange
-            const code=new URLSearchParams(window.location.search).get('code');
-            if(code){
-                console.log('[Planner] PKCE code detected, attempting exchange');
-                try{
-                    const{data,error}=await supabase.auth.exchangeCodeForSession(code);
-                    if(!error&&data?.session?.user){
-                        history.replaceState(null,'',window.location.pathname);
-                        await initApp(data.session.user);
-                        return;
-                    }
-                }catch(e){console.warn('[Planner] PKCE exchange failed:',e);}
-                history.replaceState(null,'',window.location.pathname);
-                showScreen('auth');
-                showToast('Ссылка устарела. Запросите новую.');
-                return;
-            }
-
-            // 4. No callback — check existing session
-            try{
-                const{data}=await supabase.auth.getSession();
-                console.log('[Planner] Existing session:',!!data?.session);
-                if(data?.session?.user){await initApp(data.session.user);}
-                else{showScreen('auth');}
-            }catch(e){console.error('[Planner] getSession error:',e);showScreen('auth');}
-        }
-
-        boot();
-        if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(e=>console.log('SW:',e));}
-    })();
-    </script>
+async function boot(){
+    showScreen('loading');
+    supabase.auth.onAuthStateChange(async(ev,sess)=>{
+        if(ev==='SIGNED_IN'&&sess?.user)await initApp(sess.user);
+        else if(ev==='SIGNED_OUT'){appReady=false;showScreen('email')}
+    });
+    try{const{data}=await supabase.auth.getSession();if(data?.session?.user)await initApp(data.session.user);else showScreen('email')}catch(e){showScreen('email')}
+}
+boot();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
 </body>
 </html>
