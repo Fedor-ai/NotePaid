@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#0b0b12">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <title>NotePaid</title>
+    <title>Планёр</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
@@ -765,7 +765,7 @@
 
         <!-- Auth screen -->
         <div class="auth-screen hidden" id="screenAuth">
-            <div class="auth-logo">NotePaid</div>
+            <div class="auth-logo">Планёр</div>
             <div class="auth-subtitle">Ежедневник с облачной синхронизацией</div>
             <div class="auth-form">
                 <input type="email" class="auth-input" id="authEmail" placeholder="Ваш email" autocomplete="email" inputmode="email">
@@ -786,7 +786,7 @@
             </div>
             <header class="header">
                 <div class="header-date" id="headerDate"></div>
-                <h1 class="header-title">NotePaid</h1>
+                <h1 class="header-title">Планёр</h1>
                 <div class="header-stats" id="headerStats"></div>
             </header>
 
@@ -837,8 +837,8 @@
         // =============================================================
         //  CONFIGURATION — replace these with your Supabase credentials
         // =============================================================
-        const SUPABASE_URL = 'https://rsdykfuhakmuzxvlvwci.supabase.co';       // e.g. https://abcdefg.supabase.co
-        const SUPABASE_ANON_KEY = 'sb_publishable_bK0FrX2QLB9HQJTew3k_lQ_N9IMHDv2'; // public anon key
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';       // e.g. https://abcdefg.supabase.co
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // public anon key
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1489,24 +1489,51 @@
         async function boot() {
             showScreen('loading');
 
-            // Check for magic link token in URL hash
-            const hashParams = new URLSearchParams(window.location.hash.substring(1));
-            if (hashParams.get('access_token')) {
-                // Supabase will handle this automatically
-                // Clean up the URL
-                history.replaceState(null, '', window.location.pathname);
-            }
-
-            // Listen for auth changes
+            // Set up auth state listener FIRST (before any async work)
             supabase.auth.onAuthStateChange(async (event, session) => {
                 if (event === 'SIGNED_IN' && session?.user) {
+                    // Clean up URL after successful sign-in
+                    history.replaceState(null, '', window.location.pathname);
                     await initApp(session.user);
                 } else if (event === 'SIGNED_OUT') {
                     showScreen('auth');
                 }
             });
 
-            // Check existing session
+            // Handle PKCE flow: magic link redirects with ?code=... in query string
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if (code) {
+                try {
+                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                    if (error) {
+                        console.error('Code exchange failed:', error.message);
+                        // Clean up URL and show auth screen
+                        history.replaceState(null, '', window.location.pathname);
+                        showScreen('auth');
+                        showToast('Ссылка истекла. Запросите новую.');
+                        return;
+                    }
+                    // Success — onAuthStateChange will handle the rest
+                    return;
+                } catch (err) {
+                    console.error('Code exchange error:', err);
+                    history.replaceState(null, '', window.location.pathname);
+                    showScreen('auth');
+                    return;
+                }
+            }
+
+            // Handle implicit flow: token in URL hash (#access_token=...)
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            if (hashParams.get('access_token')) {
+                // Supabase client detects hash automatically via onAuthStateChange
+                // Don't clean URL here — let Supabase process it first
+                return;
+            }
+
+            // No callback params — check existing session
             const { data } = await supabase.auth.getSession();
             if (data?.session?.user) {
                 await initApp(data.session.user);
